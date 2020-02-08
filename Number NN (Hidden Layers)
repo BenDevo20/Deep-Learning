@@ -1,0 +1,53 @@
+# creating network with hidden layers 
+from __future__ import print_function
+import numpy as np 
+from keras.datasets import mnist
+from keras.models import Sequential 
+from keras.layers.core import Dense, Dropout,Activation 
+from keras.optimizers import SGD 
+from keras.utils import np_utils 
+np.random.seed(1671)
+
+# network and training 
+NP_Epochs = 250 
+Batch_Size = 128 
+VERBOSE = 1 
+# number of outputs = number of digits 
+NB_Classes = 10 
+OPtimizer = SGD()
+N_Hidden = 128 
+# reserving train for validation 
+Validation_SPLIT = 0.2
+DropOut = 0.3
+# shuffle and split between train and test sets 
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+ReShaped = 784 
+
+X_train = X_train.reshape(60000,ReShaped)
+X_test = X_test.reshape(10000,ReShaped)
+X_train = X_train.astype('float32')
+X_test = X_test.astype('float32')
+# normalizing 
+X_train /= 255
+X_test /= 255
+print(X_train.shape[0], 'train samples')
+print(X_test.shape[0], 'test samples')
+# convert class vectors to binary class matrices 
+Y_train = np_utils.to_categorical(y_train, NB_Classes)
+Y_test = np_utils.to_categorical(y_test, NB_Classes)
+# creating hidden layers and softmax activation 
+model = Sequential()
+model.add(Dense(N_Hidden, input_shape=(ReShaped,)))
+model.add(Activation('relu'))
+model.add(Dropout(DropOut))
+model.add(Dense(N_Hidden))
+model.add(Activation('relu'))
+model.add(Dropout(DropOut))
+model.add(Dense(NB_Classes))
+model.add(Activation('softmax'))
+model.summary()
+model.compile(loss='categorical_crossentropy', optimizer=OPtimizer, metrics=['accuracy'])
+history = model.fit(X_train, y_train, batch_size=Batch_Size, epochs=NP_Epochs, verbose=VERBOSE, validation_split=Validation_SPLIT)
+score = model.evaluate(X_test,y_test, verbose=VERBOSE)
+print('Test score: ',score[0])
+print('Accuracy: ',score[1])
