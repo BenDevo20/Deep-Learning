@@ -1,0 +1,64 @@
+from __future__ import print_function
+import numpy as np 
+from keras.datasets import mnist 
+from keras.models import Sequential 
+from keras.layers.core import Dense, Activation 
+from keras.optimizers import SGD 
+from keras.utils import np_utils 
+np.random.seed(1671)
+
+# network and training 
+NB_EPOCH = 200
+Batch_size = 128 
+Verbose = 1 
+# number of outputs = number of digits 
+NB_Classes = 10
+OPtimizer = SGD() 
+N_Hidden = 128
+# how much of the training data is for validation 
+Validation_Split = 0.2 
+
+# shuffle and split the data between train and test sorted
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+# 6000 rows of 28x28 values -- reshapes 6000 x 784 
+# Input layer has neuron associated with pixel for total 28x28=784
+Reshaped = 784 
+X_train = X_train.reshape(6000,Reshaped)
+X_test = X_test.reshape(10000,Reshaped)
+X_train = X_train.astype('float32')
+X_test = X_test.astype('float32')
+# normalizing the function 
+# intensity of each pixel is divided by 255 - max intense value  
+X_train /= 255
+X_test /= 255
+print(X_train.shape[0], 'train samples')
+print(X_test.shape[0], 'test samples')
+
+# converting class vectors to binary class matrices 
+Y_train= np_utils.to_categorical(y_train, NB_Classes)
+Y_test= np_utils.to_categorical(y_test, NB_Classes)
+
+# final stage is a softmax function - generalization of sigmoid 
+# softmax - squashes a k-dim vector of arb real values into values in range (0,1)
+model = Sequential()
+model.add(Dense(NB_Classes, input_shape=(Reshaped,)))
+model.add(Activation('softmax'))
+model.summary()
+"""
+binar cross-entropy - binary logarithmic loss (it(log(p))-(1-t)log(1-p))
+t - target 
+p - prediction 
+objective function is good for binary labels prediction
+"""
+model.compile(loss='categorical_crossentropy',optimizer=OPtimizer, metrics=['accuracy'])
+
+# training model - iterate for NP_epochs 
+history = model.fit(X_train,y_train, batch_size=Batch_size, epochs=NB_EPOCH, verbose=Verbose, validation_split=Validation_Split)
+
+"""
+training and test are separate becuase learning is process to generalize unseen observations - avoid memory utiliziation 
+"""
+
+socre = model.evaluate(X_test, y_test, verbose=Verbose)
+print('Test Score: ',score[0])
+print('Test Accuracy', score[1])
